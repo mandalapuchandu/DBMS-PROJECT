@@ -1,0 +1,93 @@
+--/Creating Extension
+
+CREATE EXTENSION postgis;
+
+--Creating a table
+
+CREATE TABLE usa_hospitals(
+id Integer,
+name varchar(100),
+address varchar (208),
+city varchar(100),
+state varchar(108),
+zip varchar(180),
+type varchar(20),
+status varchar(18),
+population Integer,
+country varchar(30),
+Latitude numeric(15,16),
+Longitude numeric(15,10), 
+website varchar(500),
+beds Integer,
+helipad varchar(30)
+);
+
+--Adding a geometry column
+
+ALTER TABLE USA_HOSPITALS ADD COLUMN geom geometry(Point, 4326);
+UPDATE USA HOSPITALS SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326);
+
+--checking the data
+
+select*from usa_hospitals order by beds desc limit 10;
+
+--adding a geom column
+
+ALTER TABLE USA HOSPITALS ADD COLUMN geom geometry (Point, 4326);
+UPDATE USA HOSPITALS SET geom = ST_SetSRID(ST_MakePoint(longitude,latitude), 4326);
+
+--Retrieve locations of specific Features
+
+select id, name, city, geom, website
+from usa_hospitals
+where helipad='Y' limit 10;
+
+--Calculate Distance Between points
+
+SELECT ST_AsText(a.geom) AS point a, ST AsText(b.geom) AS point b,ST_MakeLine(a.geom,b.geom)
+FROM USA HOSPITALS a, USA HOSPITALS b
+WHERE a.name = 'DAYTON CHILDREN''S HOSPITAL' and b.name = 'MARY HURLEY HOSPITAL';
+
+--Calculate area of interest
+
+SELECT type, COUNT(*) as count
+FROM usa_hospitals
+WHERE state='TN'
+GROUP BY type
+ORDER BY count DESC;
+
+--Analyze the queries
+EXPLAIN ANALYZE SELECT name, latitude, longitude, geom
+FROM usa_hospitals
+WHERE type = 'GENERAL' AND state='TN'
+LIMIT 10;
+
+--Sorting and limit executions
+
+select * from usa_hospitals order by beds asc limit 10;
+select * from usa_hospitals order by beds desc limit 10;
+
+--Optimize the queries to speed up execution time
+
+CREATE INDEX usa_hospitals_name ON usa_hospitals (name);
+CREATE INDEX usa_hospitals_longitude ON usa_hospitals (longitude);
+CREATE INDEX usa_hospitals_latitude ON usa_hospitals (latitude);
+
+--N-optimization of queries
+
+select*
+from usa_hospitals
+where state='TN';
+
+SELECT type
+FROM usa_hospitals
+WHERE state='TN'
+GROUP BY type
+LIMIT 2;
+
+select type, count(*)
+from usa_hospitals
+where state='TN'
+GROUP BY type;
+
+
